@@ -1,8 +1,8 @@
-drop database if exists `auto_cv`;
+drop database if exists `autoCV`;
 
-create database `auto_cv`;
+create database `autoCV`;
 
-use `auto_cv`;
+use `autoCV`;
 
 
 
