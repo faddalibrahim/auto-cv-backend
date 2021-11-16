@@ -22,21 +22,34 @@
 
         public function login(){
 			$email = htmlspecialchars(strip_tags($this->details->email));
-			$password = password_verify($this->details->password,PASSWORD_DEFAULT);
+			$password = $this->details->password;
 
 			// getting student data to verify password
-            $sql = "SELECT email,password from $this->table WHERE email = :email";
+            $sql = "SELECT * from $this->table WHERE email = :email";
 			$stmt = $this->conn->prepare($sql);
-			$stmt.bindParam(':email',$email);
+			$stmt->bindParam(':email',$email);
 			$stmt->execute();
 
 			// if there was a record
 			if($stmt->rowCount()){
 				$student_data = $stmt->fetch();
 
+
+
 				// compare passwords
-				if(password_verify($student_data['password'], $password)){
-					return json_encode(array('ok'=> true, 'message' => 'login successful'));
+				if(password_verify($password,$student_data['pwd'])){
+					$firstname = $student_data['fn'];
+					$lastname = $student_data['ln'];
+					$is_verified = $student_data['is_verified'];
+					$token = $student_data['token'];
+
+					return json_encode(array('ok'=> true, 'message' => 'login successful', 'data' => array(
+						'firstName' => $firstname, 
+						'lastName' => $lastname,
+						'email' => $email,
+						'isVerified' => $is_verified,
+						'token' => $token
+					)));
 				}
 
 				return json_encode(array('ok'=> false, 'message' => 'email or password incorrect'));
