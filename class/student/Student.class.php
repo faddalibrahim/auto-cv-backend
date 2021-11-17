@@ -27,7 +27,7 @@
 		//registeration successes
 		private $register_success = array('ok' => true, 'message' => 'user successfully registered');
 		
-		private $invalid_data = array('ok' => false, 'message' => 'haha invalid dataaaa');
+		private $invalid_data = array('ok' => false, 'message' => 'invalid data');
 
 		//constructor
 		public function __construct($db){
@@ -36,6 +36,9 @@
 
 		// extra
 		private function validateFields($field_key_array){
+			if (!$this->details){
+				return false;
+			}
 			foreach ($this->details as $field => $value){
         		if (!(in_array($field, $field_key_array)) || !$value){
 					return false;
@@ -97,6 +100,8 @@
 	
 
         public function login(){
+			// return $this->validateFields($this->loginFields);
+
 			if (!$this->validateFields($this->loginFields)){
 				return json_encode($this->invalid_data);
 			}
