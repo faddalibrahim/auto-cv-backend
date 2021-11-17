@@ -194,13 +194,27 @@
 
         }
 
+
 		public function forgotPassword(){
-            return json_encode(array('forgot password' => 'yhupp you are on the student forgot password route'));
-        }
+			// receive email from frontend
+			// check for email in database
+			// send a mail concatenated with resetpassword page + token if email exists
+
+			 return json_encode(array('forgot password' => 'yhupp you are on the student forgot password route'));
+		}
+	
 
 		public function resetPassword(){
+			// after user clicks on link that contains the token and is redirected here
+			// check if token is valid from the database
+			// if valid, stay on page , if not redirect
+			// if valid, allow to enter new password
+			// receive password from frontend and update
             return json_encode(array('reset password' => 'yhupp you are on the student reset password route'));
         }
+
+
+
 	
 		
 	}
