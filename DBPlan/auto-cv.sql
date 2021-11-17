@@ -10,7 +10,7 @@ create table person (
     fname varchar(50), 
     lname varchar(50),
     email varchar(250),
-    password varchar(30),
+    password varchar(255),
     isVerified boolean default 0,
     token varchar(200)
 );
