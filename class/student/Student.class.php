@@ -15,6 +15,9 @@
 		public $details;
 		private $sanitizedDetails;
 
+		private $loginFields = array('email','password');
+		private $registerationFields = array('fname','lname','email','password');
+
 		// login errors
 		private $login_error = array('ok'=> false, 'message' => 'email or password incorrect');
 
@@ -23,6 +26,8 @@
 
 		//registeration successes
 		private $register_success = array('ok' => true, 'message' => 'user successfully registered');
+		
+		private $invalid_data = array('ok' => false, 'message' => 'haha invalid dataaaa');
 
 		//constructor
 		public function __construct($db){
@@ -30,6 +35,14 @@
 		}
 
 		// extra
+		private function validateFields($field_key_array){
+			foreach ($this->details as $field => $value){
+        		if (!(in_array($field, $field_key_array)) || !$value){
+					return false;
+        		}
+    		}
+			return true;
+		}
 
 		private function sanitizeDetails($details){
 			function sanitize($each_detail){
@@ -84,6 +97,9 @@
 	
 
         public function login(){
+			if (!$this->validateFields($this->loginFields)){
+				return json_encode($this->invalid_data);
+			}
 
 			$this->sanitizeDetails($this->details);
 
@@ -116,6 +132,10 @@
         }
 		
 		public function register(){
+			if (!$this->validateFields($this->registerationFields)){
+				return json_encode($this->invalid_data);
+			}
+
 			$this->sanitizeDetails($this->details);
 
 
