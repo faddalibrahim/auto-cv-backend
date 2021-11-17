@@ -10,9 +10,9 @@
 // }
 
 
-$to = "codewiz2019@gmail.com";
+$to = "faddalibrahim@gmail.com";
 $subject = "This is a test subject";
-$msg = "Hello codewiz";
+$msg = "Hello Faddal";
 $headers = "From: autocvteam@gmail.com";
 
 if(mail($to,$subject,$msg,$headers)){

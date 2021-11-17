@@ -4,6 +4,7 @@
 - drawSQL
 - draw.io
 - lucid.app
+- figma drawing tool
 
 > Functionalities
 
