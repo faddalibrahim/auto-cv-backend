@@ -1,5 +1,7 @@
 <?php 
 
+	
+
 	/**
 	 * 
 	 */
@@ -7,90 +9,159 @@
 		//DB Stuff
 		private $conn;
 		private $table = 'student';
+		private $parent_table = 'person';
 
-		//Post properties
-		public $id;
-		public $fullname;
-		public $email;
-		public $password;
+		// miscillaneous
 		public $details;
+		private $sanitizedDetails;
+
+		// login errors
+		private $login_error = array('ok'=> false, 'message' => 'email or password incorrect');
+
+		//register errors
+		private $email_exists = array('ok'=> false, 'message' => 'email is already taken');
+
+		//registeration successes
+		private $register_success = array('ok' => true, 'message' => 'user successfully registered');
 
 		//constructor
 		public function __construct($db){
 			$this->conn = $db;
 		}
 
-        public function login(){
-			$email = htmlspecialchars(strip_tags($this->details->email));
-			$password = $this->details->password;
+		// extra
 
-			// getting student data to verify password
-            $sql = "SELECT * from $this->table WHERE email = :email";
+		private function sanitizeDetails($details){
+			function sanitize($each_detail){
+				return htmlspecialchars(strip_tags(trim($each_detail)));
+			}
+
+			$this->sanitizedDetails = array_map("sanitize",$details);
+		}
+
+		private function getDataFromDB($email){
+			// change this is a join
+			$sql = "SELECT * from $this->parent_table WHERE email = :email";
 			$stmt = $this->conn->prepare($sql);
 			$stmt->bindParam(':email',$email);
 			$stmt->execute();
 
-			// if there was a record
+			return $stmt;
+		}
+
+		private function getBottomId(){
+			$sql = "SELECT student_id from $this->table ORDER BY student_id DESC LIMIT 1";
+			$stmt_get_bottom_id = $this->conn->prepare($sql);
+			$stmt_get_bottom_id->execute();
+
+			if($stmt_get_bottom_id->rowCount()){
+				$bottom_record = $stmt_get_bottom_id->fetch();
+				return $bottom_record['student_id'];
+			}
+
+			return 0;
+		}
+
+		private function createNewId(){
+			require "../../incs/constants.inc.php";
+
+			$bottom_id = $this->getBottomId();
+
+			if($bottom_id){
+				$bottom_id_str_arr = explode(EXPLODE_AT,$bottom_id);
+				$bottom_id_int = (int) end($bottom_id_str_arr);
+				$new_id_number = $bottom_id_int + 1;
+	
+				$new_student_id = STUDENT_ID_PREFIX . strval($new_id_number);
+	
+				return $new_student_id;
+			}
+
+			return "SD1";
+
+		}
+
+	
+
+        public function login(){
+
+			$this->sanitizeDetails($this->details);
+
+			
+			$stmt = $this->getDataFromDB($this->sanitizedDetails['email']);
+			
+			// if there is a record
 			if($stmt->rowCount()){
 				$student_data = $stmt->fetch();
+				extract($student_data);
 
-
-
+				
 				// compare passwords
-				if(password_verify($password,$student_data['pwd'])){
-					$firstname = $student_data['fn'];
-					$lastname = $student_data['ln'];
-					$is_verified = $student_data['is_verified'];
-					$token = $student_data['token'];
-
+				if(password_verify($this->sanitizedDetails['password'],$password)){
 					return json_encode(array('ok'=> true, 'message' => 'login successful', 'data' => array(
-						'firstName' => $firstname, 
-						'lastName' => $lastname,
+						'firstName' => $fname, 
+						'lastName' => $lname,
 						'email' => $email,
-						'isVerified' => $is_verified,
+						'isVerified' => $isVerified,
 						'token' => $token
 					)));
 				}
+				
+				// if password not correct
+				return json_encode($this->login_error);
+			}
+			
+			// if no record
+			return json_encode($this->login_error);
+        }
+		
+		public function register(){
+			$this->sanitizeDetails($this->details);
 
-				return json_encode(array('ok'=> false, 'message' => 'email or password incorrect'));
+
+			// check if user exists in database
+			$stmt = $this->getDataFromDB($this->sanitizedDetails['email']);
+			if($stmt->rowCount()){
+				return json_encode($this->email_exists);
 			}
 
-			// if no record
-			return json_encode(array('ok'=> false, 'message' => 'email or password incorrect'));
+			// new student id
+			$new_id = $this->createNewId();
 
-
-
-
-
-        }
-
-		public function register(){
-
-			//clean details
-			$firstname = htmlspecialchars(strip_tags($this->details->firstname));
-			$lastname = htmlspecialchars(strip_tags($this->details->lastname));
-			$email = htmlspecialchars(strip_tags($this->details->email));
-			$password = htmlspecialchars(strip_tags($this->details->password));
-			$password = password_hash($password,PASSWORD_DEFAULT);
+			// hash password
+			$hashed_password = password_hash($this->sanitizedDetails['password'],PASSWORD_DEFAULT);
 
 			// generate token
 			$token = bin2hex(random_bytes(50));
 		
 			// prepare query
-			$sql = "INSERT INTO $this->table (fn,ln,email,pwd,token) VALUES(:fn, :ln, :email, :pwd, :token)";
+			$sql = "INSERT INTO $this->parent_table (person_id, fname,lname,email,password,token) 
+					VALUES(:person_id, :fname, :lname, :email, :password, :token)";
 			$stmt = $this->conn->prepare($sql);
 
 			//bind data
-			$stmt->bindParam(':fn', $firstname);
-			$stmt->bindParam(':ln', $lastname);
-			$stmt->bindParam(':email', $email);
-			$stmt->bindParam(':pwd', $password);
+			$stmt->bindParam(':person_id', $new_id);
+			$stmt->bindParam(':fname', $this->sanitizedDetails['fname']);
+			$stmt->bindParam(':lname', $this->sanitizedDetails['lname']);
+			$stmt->bindParam(':email', $this->sanitizedDetails['email']);
+			$stmt->bindParam(':password', $hashed_password);
 			$stmt->bindParam(':token', $token);
-
-
+			
+			
 			//execute query and return success message if successful
 			if($stmt->execute()){
-				return json_encode(array('ok' => true, 'message' => 'user successfully registered'));
+				// add to child table(student);
+				$sql = "INSERT INTO $this->table (student_id) VALUES(:student_id)";
+				$stmt = $this->conn->prepare($sql);
+				$stmt->bindParam(':student_id', $new_id);
+
+				if($stmt->execute()){
+					return json_encode($this->register_success);
+
+				}
+
+				return json_encode(array('ok' => false, 'message' => $stmt->error));
+
 			}
 
 			//return error if something goes wrong

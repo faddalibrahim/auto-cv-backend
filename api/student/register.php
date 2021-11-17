@@ -8,10 +8,10 @@
     // registeration inputs
     $registerationInputs = json_decode(file_get_contents("php://input"));
 
-    // print_r($registerationInputs);
-    
-    // store registeration data in student object
-    $student->details = $registerationInputs;
+    $student->details = (array) $registerationInputs;
+    // $student->details = $registerationInputs;
+
+    // print_r(json_encode($student->details));
 
     // check if user exists (with same email) first before proceeding
 
