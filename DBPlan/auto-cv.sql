@@ -57,7 +57,7 @@ create table opportunity(
 insert into person (person_id, fname, lname, email, password, token) VALUES ("SD1","Faddal","Ibrahim","faddal.ibrahim@ashesi.edu.gh","faddalspassword", "hahaha");
 insert into person (person_id, fname, lname, email, password, token) VALUES ("SD2","Kasim","Ibrahim","kassim.ibrahim@ashesi.edu.gh","kassimsspassword", "hahaha");
 insert into person (person_id, fname, lname, email, password, token) VALUES ("AD1","Alhassan","Hassan","alhassan.hassan@ashesi.edu.gh","alhassansspassword", "hahaha");
-insert into person (person_id, fname, lname, email, password, token) VALUES ("AD2","Fawzan","Abdallah","fawzan.abdallah@ashesi.edu.gh","fawzanspassword", "hahaha");
+insert into person (person_id, fname, lname, email, password, token) VALUES ("AD2","Linda","Arthur","linda.arthur@ashesi.edu.gh","lindaspassword", "hahaha");
 
 
 insert into student VALUES ("SD1","2023");
