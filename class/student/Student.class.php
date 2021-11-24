@@ -87,13 +87,17 @@
 				$bottom_id_str_arr = explode(EXPLODE_AT,$bottom_id);
 				$bottom_id_int = (int) end($bottom_id_str_arr);
 				$new_id_number = $bottom_id_int + 1;
+
+				if(strlen(strval($new_id_number)) == 1){
+					$new_id_number = "0".$new_id_number;
+				}
 	
 				$new_student_id = STUDENT_ID_PREFIX . strval($new_id_number);
 	
 				return $new_student_id;
 			}
 
-			return "SD1";
+			return "SD01";
 
 		}
 
@@ -115,7 +119,6 @@
 			if($stmt->rowCount()){
 				$student_data = $stmt->fetch();
 				extract($student_data);
-
 				
 				// compare passwords
 				if(password_verify($this->sanitizedDetails['password'],$password)){
